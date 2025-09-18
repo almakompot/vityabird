@@ -5,7 +5,7 @@ class_name SegmentChunk
 @export var heat_band: Vector2 = Vector2(0.0, 1.0)
 @export var tags: PackedStringArray = []
 
-var spawn_markers: Dictionary[StringName, Array[Marker2D]] = {}
+var spawn_markers: Dictionary[StringName, Array] = {}
 
 func _ready() -> void:
     _cache_spawn_markers()
@@ -19,9 +19,10 @@ func _cache_spawn_markers() -> void:
                 group = StringName(child.get_meta("spawn_group"))
             if not spawn_markers.has(group):
                 spawn_markers[group] = [] as Array[Marker2D]
-            spawn_markers[group].append(child)
+            var markers := spawn_markers[group] as Array[Marker2D]
+            markers.append(child)
 
 func get_spawn_markers(group: StringName = &"default") -> Array[Marker2D]:
     if not spawn_markers.has(group):
         return [] as Array[Marker2D]
-    return spawn_markers[group]
+    return spawn_markers[group] as Array[Marker2D]
