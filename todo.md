@@ -3,11 +3,11 @@
 This checklist breaks the roadmap into actionable milestones with ready-to-use ChatGPT prompts for each task. Share the relevant prompt with ChatGPT (or tailor it) to receive detailed guidance, drafts, or assets.
 
 ## Phase 1: Pre-Production (2 weeks)
-- [ ] **Finalize satirical script and tone bible**  
+- [x] **Finalize satirical script and tone bible** – see `docs/preproduction/satirical_script.md`.
   Prompt: "You are a satirical narrative designer. Help me expand the tone bible for a comedic endless runner inspired by Viktor Orbán, covering themes, dos/don'ts, and sample jokes that stay playful without being defamatory."
-- [ ] **Storyboard opening cinematic**  
+- [x] **Storyboard opening cinematic** – see `docs/preproduction/opening_storyboard.md`.
   Prompt: "Act as a cinematics director. Outline a 10-panel storyboard for the opening escape sequence of a satirical endless runner, including camera notes, action beats, and caption ideas."
-- [ ] **Prototype core feel in Godot**  
+- [x] **Prototype core feel in Godot** – see `docs/preproduction/godot_vertical_slice_prototype.md`.
   Prompt: "Pretend you are a senior Godot engineer. Provide step-by-step instructions and sample GDScript for prototyping an endless runner movement prototype (run, jump, slide) using Godot 4."
 - [ ] **Define art direction guide**  
   Prompt: "You are an indie art lead. Draft a pixel-art style guide for caricatured political satire characters, listing palette suggestions, silhouette rules, and animation principles."
