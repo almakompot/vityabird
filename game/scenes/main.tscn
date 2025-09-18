@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/world.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2"]
@@ -12,6 +12,7 @@
 [ext_resource type="NationalizedMediaMegaphone" path="res://resources/powerups/nationalized_media_megaphone.tres" id="10"]
 [ext_resource type="PackedScene" path="res://scenes/powerup_pickup.tscn" id="11"]
 [ext_resource type="PackedScene" path="res://scenes/collectibles/coin.tscn" id="12"]
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="13"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1")
@@ -19,6 +20,7 @@ player_path = NodePath("Player")
 camera_path = NodePath("Camera2D")
 segment_spawner_path = NodePath("SegmentSpawner")
 powerup_manager_path = NodePath("PowerUpManager")
+hud_path = NodePath("HUD")
 powerup_pickup_scene = ExtResource("11")
 coin_pickup_scene = ExtResource("12")
 coin_value = 1.0
@@ -47,3 +49,50 @@ player_path = NodePath("../Player")
 world_path = NodePath("..")
 available_powerups = [ExtResource("8"), ExtResource("9"), ExtResource("10")]
 randomize_queue = true
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("13")
+
+[node name="MarginContainer" type="MarginContainer" parent="HUD"]
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 296.0
+offset_bottom = 176.0
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="PanelContainer" type="PanelContainer" parent="HUD/MarginContainer"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ContentMargin" type="MarginContainer" parent="HUD/MarginContainer/PanelContainer"]
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HUD/MarginContainer/PanelContainer/ContentMargin"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="CurrencyLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/ContentMargin/VBoxContainer"]
+unique_name_in_owner = true
+text = "Coin Bank: 0"
+theme_override_font_sizes/font_size = 22
+
+[node name="DistanceLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/ContentMargin/VBoxContainer"]
+unique_name_in_owner = true
+text = "Distance: 0 m"
+theme_override_font_sizes/font_size = 18
+
+[node name="MotorcadeLabel" type="Label" parent="HUD/MarginContainer/PanelContainer/ContentMargin/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+text = "Motorcade Upkeep: -0/s"
+theme_override_font_colors/font_color = Color(1, 0.854902, 0.572549, 1)
+theme_override_font_sizes/font_size = 16

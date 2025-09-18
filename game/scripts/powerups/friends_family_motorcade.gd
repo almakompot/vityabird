@@ -12,7 +12,7 @@ func activate(player: RunnerPlayer, world: Node) -> void:
     _active = true
     player.add_shield(shield_strength)
     if world.has_method("summon_motorcade"):
-        world.summon_motorcade(duration)
+        world.summon_motorcade(duration, drain_rate)
 
 func update(delta: float, player: RunnerPlayer, world: Node) -> void:
     if not _active:
