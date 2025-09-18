@@ -1,10 +1,17 @@
 extends Node2D
 class_name RunnerWorld
 
+signal currency_changed(total: float)
+signal currency_collected(amount: float)
+signal currency_drained(amount: float)
+signal distance_changed(distance: float)
+signal motorcade_state_changed(active: bool, drain_rate: float)
+
 @export var player_path: NodePath
 @export var camera_path: NodePath
 @export var segment_spawner_path: NodePath
 @export var powerup_manager_path: NodePath
+@export var hud_path: NodePath
 @export var powerup_pickup_scene: PackedScene
 @export var coin_pickup_scene: PackedScene
 @export var coin_value: float = 1.0
@@ -17,18 +24,22 @@ class_name RunnerWorld
 
 var coin_bank: float = 0.0
 var chase_heat: float = 0.0
+var distance_traveled: float = 0.0
 
 var _player: RunnerPlayer
 var _camera: Camera2D
 var _segment_spawner: SegmentSpawner
 var _powerup_manager: PowerUpManager
+var _hud: RunnerHUD
 var _speed_timer: float = 0.0
 var _motorcade_active: bool = false
+var _motorcade_drain_rate: float = 0.0
 var _base_heat_ramp: float = 0.0
 var _heat_multiplier: float = 1.0
 var _heat_modifier_time: float = 0.0
 var _heat_decay_bonus: float = 0.0
 var _rng := RandomNumberGenerator.new()
+var _last_player_x: float = 0.0
 
 func _ready() -> void:
     if player_path != NodePath(""):
@@ -43,6 +54,10 @@ func _ready() -> void:
             if _player:
                 _powerup_manager.set_player(_player)
             _powerup_manager.set_world(self)
+    if hud_path != NodePath(""):
+        _hud = get_node(hud_path)
+        if _hud:
+            _hud.set_world(self)
     _speed_timer = speed_ramp_interval
     if _segment_spawner:
         _base_heat_ramp = _segment_spawner.heat_ramp_rate
@@ -51,26 +66,54 @@ func _ready() -> void:
             _segment_spawner.player_path = _player.get_path()
         _segment_spawner.segment_spawned.connect(Callable(self, "_on_segment_spawned"))
     _rng.randomize()
+    if _player:
+        _last_player_x = _player.global_position.x
+    currency_changed.emit(coin_bank)
+    distance_changed.emit(distance_traveled)
+    motorcade_state_changed.emit(_motorcade_active, _motorcade_drain_rate)
 
 func _process(delta: float) -> void:
     if _player:
         _update_camera(delta)
         _update_speed(delta)
+        _update_distance()
     if _segment_spawner:
         chase_heat = _segment_spawner.heat_level
     _update_heat_modifier(delta)
 
 func add_currency(amount: float) -> void:
+    if amount == 0.0:
+        return
     coin_bank += amount
+    currency_changed.emit(coin_bank)
+    currency_collected.emit(amount)
 
 func drain_currency(amount: float) -> void:
+    if amount <= 0.0:
+        return
+    var previous := coin_bank
     coin_bank = max(0.0, coin_bank - amount)
+    var drained := previous - coin_bank
+    if drained <= 0.0:
+        return
+    currency_changed.emit(coin_bank)
+    currency_drained.emit(drained)
 
-func summon_motorcade(_duration: float) -> void:
+func summon_motorcade(_duration: float, drain_rate: float = 0.0) -> void:
     _motorcade_active = true
+    _motorcade_drain_rate = drain_rate
+    motorcade_state_changed.emit(true, _motorcade_drain_rate)
 
 func dismiss_motorcade() -> void:
     _motorcade_active = false
+    _motorcade_drain_rate = 0.0
+    motorcade_state_changed.emit(false, _motorcade_drain_rate)
+
+func is_motorcade_active() -> bool:
+    return _motorcade_active
+
+func get_motorcade_drain_rate() -> float:
+    return _motorcade_drain_rate
 
 func apply_heat_modifier(multiplier: float, duration: float, decay_bonus: float = 0.0) -> void:
     _heat_multiplier = multiplier
@@ -93,6 +136,15 @@ func _update_speed(delta: float) -> void:
     if _speed_timer <= 0.0:
         _player.run_speed += speed_ramp_amount
         _speed_timer = speed_ramp_interval
+
+func _update_distance() -> void:
+    if not _player:
+        return
+    var current_x := _player.global_position.x
+    if current_x > _last_player_x:
+        distance_traveled += current_x - _last_player_x
+        distance_changed.emit(distance_traveled)
+    _last_player_x = current_x
 
 func _update_heat_modifier(delta: float) -> void:
     if _heat_modifier_time <= 0.0:
