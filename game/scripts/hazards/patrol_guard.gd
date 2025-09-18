@@ -8,7 +8,7 @@ class_name PatrolGuard
 @export var patrol_distance: float = 160.0
 @export var start_direction: int = 1
 
-var _origin: Vector2
+var _origin: Vector2 = Vector2.ZERO
 var _direction: int = 1
 
 func _ready() -> void:
@@ -24,10 +24,10 @@ func _physics_process(delta: float) -> void:
     velocity.x = patrol_speed * _direction
     velocity.y = 0.0
     move_and_slide()
-    var offset := global_position.x - _origin.x
+    var offset: float = global_position.x - _origin.x
     if abs(offset) >= patrol_distance:
         _direction *= -1
-        var clamped := clamp(offset, -patrol_distance, patrol_distance)
+        var clamped: float = clamp(offset, -patrol_distance, patrol_distance)
         global_position.x = _origin.x + clamped
 
 func get_heat_damage() -> float:

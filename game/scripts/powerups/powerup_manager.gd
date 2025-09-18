@@ -10,13 +10,13 @@ signal powerup_ready(powerup: PowerUp)
 @export var available_powerups: Array[PowerUp] = []
 @export var randomize_queue: bool = true
 
-var _player: RunnerPlayer
-var _world: Node
-var _active_powerup: PowerUp
+var _player: RunnerPlayer = null
+var _world: Node = null
+var _active_powerup: PowerUp = null
 var _active_timer: float = 0.0
-var _cooldowns := {}
-var _rng := RandomNumberGenerator.new()
-var _ready_state := {}
+var _cooldowns: Dictionary[StringName, float] = {}
+var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var _ready_state: Dictionary[StringName, bool] = {}
 
 func _ready() -> void:
     if player_path != NodePath(""):
@@ -41,10 +41,10 @@ func _process(delta: float) -> void:
             trigger_random_powerup()
 
 func trigger_random_powerup() -> bool:
-    var ready := _get_ready_powerups()
+    var ready: Array[PowerUp] = _get_ready_powerups()
     if ready.is_empty():
         return false
-    var powerup := ready[0]
+    var powerup: PowerUp = ready[0]
     if randomize_queue and ready.size() > 1:
         powerup = ready[_rng.randi_range(0, ready.size() - 1)]
     return activate_powerup(powerup)
@@ -86,13 +86,14 @@ func _get_ready_powerups() -> Array[PowerUp]:
     return ready
 
 func _update_cooldowns(delta: float) -> void:
-    for id in _cooldowns.keys():
-        var previous_ready := _ready_state.get(id, false)
+    for key in _cooldowns.keys():
+        var id: StringName = key
+        var previous_ready: bool = bool(_ready_state.get(id, false))
         _cooldowns[id] = max(_cooldowns[id] - delta, 0.0)
-        var is_ready := _cooldowns[id] <= 0.0
+        var is_ready: bool = _cooldowns[id] <= 0.0
         _ready_state[id] = is_ready
         if is_ready and not previous_ready:
-            var powerup := _find_powerup(id)
+            var powerup: PowerUp = _find_powerup(id)
             if powerup:
                 powerup_ready.emit(powerup)
 
@@ -109,7 +110,7 @@ func set_world(world: Node) -> void:
     _world = world
 
 func grant_powerup(id: StringName) -> void:
-    var powerup := _find_powerup(id)
+    var powerup: PowerUp = _find_powerup(id)
     if not powerup:
         return
     _cooldowns[id] = 0.0

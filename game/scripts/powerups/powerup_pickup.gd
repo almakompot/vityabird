@@ -7,7 +7,7 @@ signal collected(powerup_id: StringName)
 @export var auto_activate: bool = true
 @export var sprite_color: Color = Color(0.984314, 0.815686, 0.290196, 1)
 
-var _powerup_manager: PowerUpManager
+var _powerup_manager: PowerUpManager = null
 
 func _ready() -> void:
     connect("body_entered", Callable(self, "_on_body_entered"))
@@ -23,7 +23,7 @@ func _on_body_entered(body: Node) -> void:
     if _powerup_manager:
         if auto_activate:
             _powerup_manager.grant_powerup(powerup_id)
-            var powerup := _powerup_manager.get_powerup(powerup_id)
+            var powerup: PowerUp = _powerup_manager.get_powerup(powerup_id)
             if powerup:
                 _powerup_manager.activate_powerup(powerup)
         else:
@@ -35,7 +35,7 @@ func assign_manager(manager: PowerUpManager) -> void:
     _powerup_manager = manager
 
 func _find_powerup_manager() -> PowerUpManager:
-    var node := get_parent()
+    var node: Node = get_parent()
     while node:
         if node is PowerUpManager:
             return node
