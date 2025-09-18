@@ -46,3 +46,11 @@ __meta__ = {"spawn_group": "coins"}
 [node name="CoinTrailExit" type="Marker2D" parent="."]
 position = Vector2(880, -90)
 __meta__ = {"spawn_group": "coins"}
+
+[node name="ObstacleSpawn" type="Marker2D" parent="."]
+position = Vector2(520, 0)
+__meta__ = {"spawn_group": "obstacles"}
+
+[node name="EnemyTower" type="Marker2D" parent="."]
+position = Vector2(300, -28)
+__meta__ = {"spawn_group": "enemies"}

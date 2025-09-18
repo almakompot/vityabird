@@ -6,6 +6,7 @@ signal currency_collected(amount: float)
 signal currency_drained(amount: float)
 signal distance_changed(distance: float)
 signal motorcade_state_changed(active: bool, drain_rate: float)
+signal run_ended(distance: float, coins: float, heat: float, reason: String)
 
 @export var player_path: NodePath
 @export var camera_path: NodePath
@@ -16,6 +17,10 @@ signal motorcade_state_changed(active: bool, drain_rate: float)
 @export var coin_pickup_scene: PackedScene
 @export var coin_value: float = 1.0
 @export var coin_spawn_variance: float = 12.0
+@export var obstacle_scenes: Array[PackedScene] = []
+@export var enemy_scenes: Array[PackedScene] = []
+@export var obstacle_spawn_chance: float = 0.75
+@export var enemy_spawn_chance: float = 0.6
 @export var camera_lead: float = 320.0
 @export var camera_height_offset: float = 120.0
 @export var camera_smoothing: float = 6.0
@@ -40,8 +45,11 @@ var _heat_modifier_time: float = 0.0
 var _heat_decay_bonus: float = 0.0
 var _rng := RandomNumberGenerator.new()
 var _last_player_x: float = 0.0
+var _run_active: bool = true
+var _max_heat: float = 0.0
 
 func _ready() -> void:
+    _run_active = true
     if player_path != NodePath(""):
         _player = get_node(player_path)
     if camera_path != NodePath(""):
@@ -61,6 +69,7 @@ func _ready() -> void:
     _speed_timer = speed_ramp_interval
     if _segment_spawner:
         _base_heat_ramp = _segment_spawner.heat_ramp_rate
+        _max_heat = _segment_spawner.max_heat
         if _player:
             _segment_spawner.set_player(_player)
             _segment_spawner.player_path = _player.get_path()
@@ -68,11 +77,15 @@ func _ready() -> void:
     _rng.randomize()
     if _player:
         _last_player_x = _player.global_position.x
+        _player.hazard_blocked.connect(_on_player_hazard_blocked)
+        _player.hazard_damaged.connect(_on_player_hazard_damaged)
     currency_changed.emit(coin_bank)
     distance_changed.emit(distance_traveled)
     motorcade_state_changed.emit(_motorcade_active, _motorcade_drain_rate)
 
 func _process(delta: float) -> void:
+    if not _run_active:
+        return
     if _player:
         _update_camera(delta)
         _update_speed(delta)
@@ -163,6 +176,8 @@ func _on_segment_spawned(segment: Node, tileset: EnvironmentTileset) -> void:
     var chunk := segment as SegmentChunk
     _spawn_coins_for_segment(segment, chunk)
     _spawn_powerup_for_segment(segment, chunk, tileset)
+    _spawn_obstacles_for_segment(segment, chunk)
+    _spawn_enemies_for_segment(segment, chunk)
 
 func _spawn_coins_for_segment(segment: Node, chunk: SegmentChunk) -> void:
     if coin_pickup_scene == null:
@@ -215,3 +230,71 @@ func _select_powerup_for_tileset(tileset: EnvironmentTileset) -> StringName:
             var idx := _rng.randi_range(0, pool.size() - 1)
             return pool[idx]
     return &"public_works_jetpack"
+
+func _spawn_obstacles_for_segment(segment: Node, chunk: SegmentChunk) -> void:
+    _spawn_hazards_for_segment(segment, chunk, &"obstacles", obstacle_scenes, obstacle_spawn_chance)
+
+func _spawn_enemies_for_segment(segment: Node, chunk: SegmentChunk) -> void:
+    _spawn_hazards_for_segment(segment, chunk, &"enemies", enemy_scenes, enemy_spawn_chance)
+
+func _spawn_hazards_for_segment(segment: Node, chunk: SegmentChunk, group: StringName, scenes: Array[PackedScene], spawn_chance: float) -> void:
+    if scenes.is_empty():
+        return
+    var markers := chunk.get_spawn_markers(group)
+    if markers.is_empty():
+        return
+    for marker: Marker2D in markers:
+        if spawn_chance < 1.0 and _rng.randf() > spawn_chance:
+            continue
+        var scene := scenes[_rng.randi_range(0, scenes.size() - 1)]
+        if scene == null:
+            continue
+        var instance := scene.instantiate()
+        if instance == null:
+            continue
+        segment.add_child(instance)
+        if instance is Node2D:
+            instance.position = marker.position
+
+func apply_heat_penalty(amount: float) -> float:
+    if amount <= 0.0:
+        return chase_heat
+    if _segment_spawner:
+        _segment_spawner.heat_level = clamp(_segment_spawner.heat_level + amount, 0.0, _segment_spawner.max_heat)
+        chase_heat = _segment_spawner.heat_level
+    else:
+        var cap := _max_heat if _max_heat > 0.0 else chase_heat + amount
+        chase_heat = clamp(chase_heat + amount, 0.0, cap)
+    return chase_heat
+
+func end_run(reason: String = "Apprehended") -> void:
+    if not _run_active:
+        return
+    _run_active = false
+    if _player:
+        _player.end_jetpack()
+        _player.set_controls_enabled(false)
+    if _segment_spawner:
+        _segment_spawner.set_process(false)
+    if _powerup_manager:
+        _powerup_manager.set_process(false)
+    run_ended.emit(distance_traveled, coin_bank, chase_heat, reason)
+
+func _on_player_hazard_blocked(hazard: Node) -> void:
+    if hazard and hazard.has_method("on_player_blocked"):
+        hazard.on_player_blocked(_player, self)
+
+func _on_player_hazard_damaged(hazard: Node) -> void:
+    var heat_damage := 1.0
+    var reason := "Apprehended"
+    if hazard:
+        if hazard.has_method("get_heat_damage"):
+            heat_damage = float(hazard.get_heat_damage())
+        if hazard.has_method("get_defeat_reason"):
+            reason = str(hazard.get_defeat_reason())
+    var new_heat := apply_heat_penalty(heat_damage)
+    if hazard and hazard.has_method("on_player_damaged"):
+        hazard.on_player_damaged(_player, self)
+    var limit := _segment_spawner.max_heat if _segment_spawner else (_max_heat if _max_heat > 0.0 else new_heat)
+    if new_heat >= limit:
+        end_run(reason)

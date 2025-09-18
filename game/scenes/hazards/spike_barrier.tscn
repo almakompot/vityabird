@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/hazards/obstacle_hazard.gd" id="1"]
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(64, 48)
+
+[node name="SpikeBarrier" type="StaticBody2D"]
+script = ExtResource("1")
+heat_damage = 1.2
+destroy_on_hit = true
+defeat_reason = "Impaled on barricade"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -24)
+shape = SubResource("1")
+
+[node name="Spikes" type="Polygon2D" parent="."]
+color = Color(0.792157, 0.207843, 0.227451, 1)
+polygon = PackedVector2Array(-32, 0, -16, -40, 0, 0, 16, -40, 32, 0)
