@@ -1,0 +1,14 @@
+[gd_resource type="EnvironmentTileset" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/environment/environment_tileset.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/environment/border_block_a.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "border_fence"
+display_name = "Border Fence Sprint"
+description = "Spotlights and barricades demand tight timing as the chase peaks."
+heat_threshold = Vector2(2.0, 3.2)
+weight = 1.4
+segments = [ExtResource("2")]
+powerup_bias = PackedStringArray("nationalized_media_megaphone")

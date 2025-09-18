@@ -1,0 +1,13 @@
+[gd_resource type="FriendsFamilyMotorcade" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/powerups/friends_family_motorcade.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "friends_family_motorcade"
+display_name = "Friends & Family Motorcade"
+description = "Allied aides form a shield wall but skim your coffers."
+duration = 6.0
+cooldown = 14.0
+shield_strength = 3
+drain_rate = 20.0

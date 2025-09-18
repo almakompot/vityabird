@@ -1,0 +1,26 @@
+; Engine configuration file.
+; It is best edited using the editor UI and not directly.
+; Format: ini-style
+
+config_version=5
+
+[application]
+config/name="Viktor Orban: Endless Escape"
+run/main_scene="res://scenes/main.tscn"
+config/icon="res://icon.svg"
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+
+[input]
+ui_accept={"deadzone":0.5,"events":[{"type":"key","physical_keycode":32,"keycode":32,"unicode":32},{"type":"joy_button","device":0,"joy_button":0},{"type":"mouse_button","button_index":1}]}
+runner_jump={"deadzone":0.5,"events":[{"type":"key","physical_keycode":32,"keycode":32,"unicode":32},{"type":"joy_button","device":0,"joy_button":0},{"type":"mouse_button","button_index":1}]}
+runner_slide={"deadzone":0.5,"events":[{"type":"key","physical_keycode":16777238,"keycode":16777238},{"type":"key","physical_keycode":16777237,"keycode":16777237},{"type":"mouse_button","button_index":2}]}
+runner_powerup={"deadzone":0.5,"events":[{"type":"key","physical_keycode":70,"keycode":70,"unicode":102},{"type":"joy_button","device":0,"joy_button":2}]}
+
+[physics]
+common/enable_pause_aware_picking=true
+
+[rendering]
+renderer/rendering_method="forward_plus"

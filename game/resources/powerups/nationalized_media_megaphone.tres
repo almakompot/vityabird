@@ -1,0 +1,13 @@
+[gd_resource type="NationalizedMediaMegaphone" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/powerups/nationalized_media_megaphone.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "nationalized_media_megaphone"
+display_name = "Nationalized Media Megaphone"
+description = "Flood the airwaves with spin to stall the chase."
+duration = 5.0
+cooldown = 18.0
+heat_multiplier = 0.4
+decay_bonus = -0.8
