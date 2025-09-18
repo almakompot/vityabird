@@ -1,4 +1,4 @@
-[gd_resource type="EnvironmentTileset" load_steps=4 format=3]
+[gd_resource type="Resource" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/environment/environment_tileset.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/environment/charity_block_a.tscn" id="2"]
