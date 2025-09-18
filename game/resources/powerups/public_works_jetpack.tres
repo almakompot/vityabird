@@ -1,0 +1,13 @@
+[gd_resource type="PublicWorksJetpack" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/powerups/public_works_jetpack.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "public_works_jetpack"
+display_name = "Public Works Jetpack"
+description = "Repurposed public works funding fuels a temporary escape vector."
+duration = 4.0
+cooldown = 10.0
+ascent_boost = -300.0
+hover_grace = 0.25

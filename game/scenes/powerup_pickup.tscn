@@ -1,0 +1,25 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/powerups/powerup_pickup.gd" id="1"]
+
+[sub_resource type="CircleShape2D" id="1"]
+radius = 18.0
+
+[sub_resource type="Gradient" id="2"]
+colors = PackedColorArray(0.984314, 0.815686, 0.290196, 1, 0.988235, 0.54902, 0.2, 1)
+offsets = PackedFloat32Array(0, 1)
+
+[sub_resource type="GradientTexture2D" id="3"]
+width = 32
+height = 32
+gradient = SubResource("2")
+
+[node name="PowerUpPickup" type="Area2D"]
+script = ExtResource("1")
+monitorable = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = SubResource("3")

@@ -1,0 +1,49 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/world.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2"]
+[ext_resource type="Script" path="res://scripts/environment/segment_spawner.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/powerups/powerup_manager.gd" id="4"]
+[ext_resource type="EnvironmentTileset" path="res://tilesets/charity_tileset.tres" id="5"]
+[ext_resource type="EnvironmentTileset" path="res://tilesets/media_tileset.tres" id="6"]
+[ext_resource type="EnvironmentTileset" path="res://tilesets/border_tileset.tres" id="7"]
+[ext_resource type="PublicWorksJetpack" path="res://resources/powerups/public_works_jetpack.tres" id="8"]
+[ext_resource type="FriendsFamilyMotorcade" path="res://resources/powerups/friends_family_motorcade.tres" id="9"]
+[ext_resource type="NationalizedMediaMegaphone" path="res://resources/powerups/nationalized_media_megaphone.tres" id="10"]
+[ext_resource type="PackedScene" path="res://scenes/powerup_pickup.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://scenes/collectibles/coin.tscn" id="12"]
+
+[node name="World" type="Node2D"]
+script = ExtResource("1")
+player_path = NodePath("Player")
+camera_path = NodePath("Camera2D")
+segment_spawner_path = NodePath("SegmentSpawner")
+powerup_manager_path = NodePath("PowerUpManager")
+powerup_pickup_scene = ExtResource("11")
+coin_pickup_scene = ExtResource("12")
+coin_value = 1.0
+coin_spawn_variance = 8.0
+position = Vector2(0, 0)
+
+[node name="SegmentSpawner" type="Node2D" parent="."]
+script = ExtResource("3")
+player_path = NodePath("../Player")
+tilesets = [ExtResource("5"), ExtResource("6"), ExtResource("7")]
+segments_ahead = 3
+recycle_margin = 800.0
+heat_ramp_rate = 0.016
+
+[node name="Player" parent="." instance=ExtResource("2")]
+position = Vector2(80, -96)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(80, -160)
+zoom = Vector2(1.2, 1.2)
+current = true
+
+[node name="PowerUpManager" type="Node" parent="."]
+script = ExtResource("4")
+player_path = NodePath("../Player")
+world_path = NodePath("..")
+available_powerups = [ExtResource("8"), ExtResource("9"), ExtResource("10")]
+randomize_queue = true
