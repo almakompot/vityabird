@@ -13,8 +13,8 @@ signal segment_recycled(segment: Node, tileset: EnvironmentTileset)
 
 var heat_level: float = 0.0
 
-var _player: Node2D
-var _rng := RandomNumberGenerator.new()
+var _player: Node2D = null
+var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _active_segments: Array[Dictionary] = []
 var _next_spawn_x: float = 0.0
 
@@ -32,26 +32,26 @@ func _process(delta: float) -> void:
     heat_level = clamp(heat_level + heat_ramp_rate * delta, 0.0, max_heat)
 
 func _maybe_spawn_segments() -> void:
-    var target_x := _player.global_position.x + 1600.0
+    var target_x: float = _player.global_position.x + 1600.0
     while _next_spawn_x < target_x:
         if not _spawn_next_segment():
             break
 
 func _spawn_next_segment() -> bool:
-    var tileset := _select_tileset()
+    var tileset: EnvironmentTileset = _select_tileset()
     if tileset == null:
         return false
-    var packed := tileset.pick_random_segment(_rng)
+    var packed: PackedScene = tileset.pick_random_segment(_rng)
     if packed == null:
         return false
-    var instance := packed.instantiate()
+    var instance: Node = packed.instantiate()
     if not instance:
         return false
     add_child(instance)
     if instance is Node2D:
         instance.position.x = _next_spawn_x
     _active_segments.append({"node": instance, "tileset": tileset})
-    var length := 960.0
+    var length: float = 960.0
     if instance is SegmentChunk:
         length = instance.segment_length
     _next_spawn_x += length
@@ -62,12 +62,12 @@ func _spawn_next_segment() -> bool:
 func _recycle_old_segments() -> void:
     if _player == null:
         return
-    var recycle_x := _player.global_position.x - recycle_margin
+    var recycle_x: float = _player.global_position.x - recycle_margin
     while _active_segments.size() > 0:
-        var entry := _active_segments[0]
-        var first: Node = entry.get("node")
-        var tileset: EnvironmentTileset = entry.get("tileset")
-        if first == null or not first is Node2D:
+        var entry: Dictionary = _active_segments[0]
+        var first: Node2D = entry.get("node") as Node2D
+        var tileset: EnvironmentTileset = entry.get("tileset") as EnvironmentTileset
+        if first == null:
             _active_segments.pop_front()
             continue
         if first.global_position.x + 1280.0 >= recycle_x:
@@ -78,7 +78,7 @@ func _recycle_old_segments() -> void:
 
 func _select_tileset() -> EnvironmentTileset:
     var available: Array[EnvironmentTileset] = []
-    var total_weight := 0.0
+    var total_weight: float = 0.0
     for tileset in tilesets:
         if tileset == null:
             continue
@@ -92,8 +92,8 @@ func _select_tileset() -> EnvironmentTileset:
             total_weight += max(tileset.weight, 0.001)
     if available.is_empty():
         return null
-    var pick := _rng.randf_range(0.0, total_weight)
-    var accumulator := 0.0
+    var pick: float = _rng.randf_range(0.0, total_weight)
+    var accumulator: float = 0.0
     for tileset in available:
         accumulator += max(tileset.weight, 0.001)
         if pick <= accumulator:

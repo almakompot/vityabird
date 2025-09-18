@@ -25,13 +25,13 @@ var _is_sliding: bool = false
 var _is_jetpacking: bool = false
 var _shield_health: int = 0
 var _controls_enabled: bool = true
-var _hazard_cooldowns := {}
+var _hazard_cooldowns: Dictionary = {}
 
 const HAZARD_HIT_COOLDOWN := 0.5
 
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
-@onready var _base_shape := collision_shape.shape.duplicate(true) if collision_shape.shape else null
-@onready var _slide_shape := _make_slide_shape()
+@onready var _base_shape: Shape2D = collision_shape.shape.duplicate(true) if collision_shape.shape else null
+@onready var _slide_shape: RectangleShape2D = _make_slide_shape()
 @onready var _base_collision_offset: Vector2 = collision_shape.position
 
 func _ready() -> void:
@@ -145,7 +145,7 @@ func clear_shield(emit_signal: bool = true) -> void:
 func _make_slide_shape() -> RectangleShape2D:
     if _base_shape == null:
         return RectangleShape2D.new()
-    var slide_shape := RectangleShape2D.new()
+    var slide_shape: RectangleShape2D = RectangleShape2D.new()
     slide_shape.size = Vector2(_base_shape.size.x, _base_shape.size.y * 0.6)
     return slide_shape
 
@@ -164,14 +164,14 @@ func _update_hazard_cooldowns(delta: float) -> void:
         _hazard_cooldowns.erase(hazard)
 
 func _check_hazard_collisions() -> void:
-    var collisions := get_slide_collision_count()
+    var collisions: int = get_slide_collision_count()
     if collisions <= 0:
         return
     for index in range(collisions):
-        var collision := get_slide_collision(index)
+        var collision: KinematicCollision2D = get_slide_collision(index)
         if collision == null:
             continue
-        var collider := collision.get_collider()
+        var collider: Node = collision.get_collider()
         if collider == null:
             continue
         if not collider.is_in_group("hazard"):

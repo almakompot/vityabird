@@ -12,7 +12,7 @@ class_name EnvironmentTileset
 func pick_random_segment(rng: RandomNumberGenerator) -> PackedScene:
     if segments.is_empty():
         return null
-    var index := rng.randi_range(0, segments.size() - 1)
+    var index: int = rng.randi_range(0, segments.size() - 1)
     return segments[index]
 
 func contains_heat(heat: float) -> bool:

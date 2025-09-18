@@ -14,10 +14,10 @@ class_name RunnerHUD
 @onready var _summary_heat_label: Label = %SummaryHeatLabel
 @onready var _retry_button: Button = %RetryButton
 
-var _world: RunnerWorld
-var _currency_base_modulate := Color(1, 1, 1, 1)
-var _distance_base_modulate := Color(1, 1, 1, 1)
-var _motorcade_base_modulate := Color(1, 1, 1, 1)
+var _world: RunnerWorld = null
+var _currency_base_modulate: Color = Color(1, 1, 1, 1)
+var _distance_base_modulate: Color = Color(1, 1, 1, 1)
+var _motorcade_base_modulate: Color = Color(1, 1, 1, 1)
 
 func _ready() -> void:
     if _currency_label:
@@ -92,13 +92,13 @@ func _on_motorcade_state_changed(active: bool, drain_rate: float) -> void:
 func _refresh_currency(total: float) -> void:
     if not _currency_label:
         return
-    var rounded := int(round(total))
+    var rounded: int = int(round(total))
     _currency_label.text = "Coin Bank: %d" % rounded
 
 func _refresh_distance(distance: float) -> void:
     if not _distance_label:
         return
-    var units := distance
+    var units: float = distance
     if distance_pixels_per_unit > 0.0:
         units = distance / distance_pixels_per_unit
     if show_decimal_distance:
@@ -123,7 +123,7 @@ func _update_motorcade_display(active: bool, drain_rate: float) -> void:
 func _flash_label(label: CanvasItem, highlight_color: Color) -> void:
     if label == null:
         return
-    var base_color := Color(1, 1, 1, 1)
+    var base_color: Color = Color(1, 1, 1, 1)
     if label == _currency_label:
         base_color = _currency_base_modulate
     elif label == _distance_label:
@@ -131,7 +131,7 @@ func _flash_label(label: CanvasItem, highlight_color: Color) -> void:
     elif label == _motorcade_label:
         base_color = _motorcade_base_modulate
     label.modulate = highlight_color
-    var tween := create_tween()
+    var tween: Tween = create_tween()
     tween.tween_property(label, "modulate", base_color, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 func _on_run_ended(distance: float, coins: float, heat: float, reason: String) -> void:
@@ -144,7 +144,7 @@ func _show_run_summary(distance: float, coins: float, heat: float, reason: Strin
     if _summary_reason_label:
         _summary_reason_label.text = reason
     if _summary_distance_label:
-        var units := distance
+        var units: float = distance
         if distance_pixels_per_unit > 0.0:
             units = distance / distance_pixels_per_unit
         if show_decimal_distance:
@@ -161,6 +161,6 @@ func _hide_run_summary() -> void:
         _summary_root.visible = false
 
 func _on_retry_pressed() -> void:
-    var tree := get_tree()
+    var tree: SceneTree = get_tree()
     if tree:
         tree.reload_current_scene()
