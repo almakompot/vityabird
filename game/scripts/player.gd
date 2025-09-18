@@ -6,6 +6,8 @@ signal slide_ended
 signal jetpack_started
 signal jetpack_ended
 signal shield_broken
+signal hazard_blocked(hazard: Node)
+signal hazard_damaged(hazard: Node)
 
 @export var run_speed: float = 420.0
 @export var acceleration: float = 30.0
@@ -22,6 +24,10 @@ var _jetpack_timer: float = 0.0
 var _is_sliding: bool = false
 var _is_jetpacking: bool = false
 var _shield_health: int = 0
+var _controls_enabled: bool = true
+var _hazard_cooldowns := {}
+
+const HAZARD_HIT_COOLDOWN := 0.5
 
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var _base_shape := collision_shape.shape.duplicate(true) if collision_shape.shape else null
@@ -32,6 +38,10 @@ func _ready() -> void:
     current_speed = run_speed
 
 func _physics_process(delta: float) -> void:
+    if not _controls_enabled:
+        velocity = Vector2.ZERO
+        return
+    _update_hazard_cooldowns(delta)
     _apply_horizontal_acceleration(delta)
     if _is_jetpacking:
         _update_jetpack(delta)
@@ -40,6 +50,13 @@ func _physics_process(delta: float) -> void:
         _handle_jump_input()
         _handle_slide_input(delta)
     move_and_slide()
+    _check_hazard_collisions()
+
+func set_controls_enabled(enabled: bool) -> void:
+    _controls_enabled = enabled
+    if not _controls_enabled:
+        velocity = Vector2.ZERO
+        current_speed = 0.0
 
 func _apply_horizontal_acceleration(delta: float) -> void:
     current_speed = move_toward(current_speed, run_speed, acceleration * delta)
@@ -131,3 +148,38 @@ func _make_slide_shape() -> RectangleShape2D:
     var slide_shape := RectangleShape2D.new()
     slide_shape.size = Vector2(_base_shape.size.x, _base_shape.size.y * 0.6)
     return slide_shape
+
+func _update_hazard_cooldowns(delta: float) -> void:
+    if _hazard_cooldowns.is_empty():
+        return
+    var erase_list: Array = []
+    for hazard in _hazard_cooldowns.keys():
+        if not is_instance_valid(hazard):
+            erase_list.append(hazard)
+            continue
+        _hazard_cooldowns[hazard] = max(_hazard_cooldowns[hazard] - delta, 0.0)
+        if _hazard_cooldowns[hazard] <= 0.0:
+            erase_list.append(hazard)
+    for hazard in erase_list:
+        _hazard_cooldowns.erase(hazard)
+
+func _check_hazard_collisions() -> void:
+    var collisions := get_slide_collision_count()
+    if collisions <= 0:
+        return
+    for index in range(collisions):
+        var collision := get_slide_collision(index)
+        if collision == null:
+            continue
+        var collider := collision.get_collider()
+        if collider == null:
+            continue
+        if not collider.is_in_group("hazard"):
+            continue
+        if _hazard_cooldowns.get(collider, 0.0) > 0.0:
+            continue
+        if consume_shield_hit():
+            hazard_blocked.emit(collider)
+        else:
+            hazard_damaged.emit(collider)
+        _hazard_cooldowns[collider] = HAZARD_HIT_COOLDOWN

@@ -7,6 +7,12 @@ class_name RunnerHUD
 @onready var _currency_label: Label = %CurrencyLabel
 @onready var _distance_label: Label = %DistanceLabel
 @onready var _motorcade_label: Label = %MotorcadeLabel
+@onready var _summary_root: Control = %RunSummary
+@onready var _summary_reason_label: Label = %SummaryReasonLabel
+@onready var _summary_distance_label: Label = %SummaryDistanceLabel
+@onready var _summary_coins_label: Label = %SummaryCoinsLabel
+@onready var _summary_heat_label: Label = %SummaryHeatLabel
+@onready var _retry_button: Button = %RetryButton
 
 var _world: RunnerWorld
 var _currency_base_modulate := Color(1, 1, 1, 1)
@@ -23,6 +29,9 @@ func _ready() -> void:
         _motorcade_label.visible = false
     _refresh_currency(0.0)
     _refresh_distance(0.0)
+    _hide_run_summary()
+    if _retry_button:
+        _retry_button.pressed.connect(_on_retry_pressed)
 
 func set_world(world: RunnerWorld) -> void:
     if _world == world:
@@ -34,6 +43,8 @@ func set_world(world: RunnerWorld) -> void:
         _refresh_currency(_world.coin_bank)
         _refresh_distance(_world.distance_traveled)
         _update_motorcade_display(_world.is_motorcade_active(), _world.get_motorcade_drain_rate())
+    else:
+        _hide_run_summary()
 
 func _disconnect_world() -> void:
     if _world == null:
@@ -48,6 +59,8 @@ func _disconnect_world() -> void:
         _world.disconnect("distance_changed", Callable(self, "_on_distance_changed"))
     if _world.is_connected("motorcade_state_changed", Callable(self, "_on_motorcade_state_changed")):
         _world.disconnect("motorcade_state_changed", Callable(self, "_on_motorcade_state_changed"))
+    if _world.is_connected("run_ended", Callable(self, "_on_run_ended")):
+        _world.disconnect("run_ended", Callable(self, "_on_run_ended"))
 
 func _connect_world() -> void:
     if _world == null:
@@ -57,6 +70,7 @@ func _connect_world() -> void:
     _world.currency_drained.connect(_on_currency_drained)
     _world.distance_changed.connect(_on_distance_changed)
     _world.motorcade_state_changed.connect(_on_motorcade_state_changed)
+    _world.run_ended.connect(_on_run_ended)
 
 func _on_currency_changed(total: float) -> void:
     _refresh_currency(total)
@@ -119,3 +133,34 @@ func _flash_label(label: CanvasItem, highlight_color: Color) -> void:
     label.modulate = highlight_color
     var tween := create_tween()
     tween.tween_property(label, "modulate", base_color, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+func _on_run_ended(distance: float, coins: float, heat: float, reason: String) -> void:
+    _show_run_summary(distance, coins, heat, reason)
+
+func _show_run_summary(distance: float, coins: float, heat: float, reason: String) -> void:
+    if not _summary_root:
+        return
+    _summary_root.visible = true
+    if _summary_reason_label:
+        _summary_reason_label.text = reason
+    if _summary_distance_label:
+        var units := distance
+        if distance_pixels_per_unit > 0.0:
+            units = distance / distance_pixels_per_unit
+        if show_decimal_distance:
+            _summary_distance_label.text = "Distance: %.1f m" % units
+        else:
+            _summary_distance_label.text = "Distance: %d m" % int(units)
+    if _summary_coins_label:
+        _summary_coins_label.text = "Coins: %d" % int(round(coins))
+    if _summary_heat_label:
+        _summary_heat_label.text = "Heat: %.1f" % heat
+
+func _hide_run_summary() -> void:
+    if _summary_root:
+        _summary_root.visible = false
+
+func _on_retry_pressed() -> void:
+    var tree := get_tree()
+    if tree:
+        tree.reload_current_scene()
